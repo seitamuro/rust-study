@@ -5,10 +5,12 @@ mod mock;
 
 use list::List::{Cons, Nil};
 use list::RcList::{RCons, RNil};
+use list::RRList::{RRCons, RRNil};
 use mybox::MyBox;
 use drop::CustomSmartPointer;
 use std::mem::drop;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 fn main() {
     // Box型｡ヒープデータへのポインタ｡
@@ -51,4 +53,18 @@ fn main() {
         println!("count after creating c = {}", Rc::strong_count(&a));
     }
     println!("count after c goes out of scope = {}", Rc::strong_count(&a));
+
+    // Rc<RefCell<T>>
+    let value = Rc::new(RefCell::new(5));
+
+    let a = Rc::new(RRCons(Rc::clone(&value), Rc::new(RRNil)));
+
+    let b = RRCons(Rc::new(RefCell::new(6)), Rc::clone(&a));
+    let c = RRCons(Rc::new(RefCell::new(16)), Rc::clone(&a));
+
+    *value.borrow_mut() += 10;
+
+    println!("a after = {:?}", a);
+    println!("b after = {:?}", b);
+    println!("c after = {:?}", c);
 }
