@@ -2,15 +2,18 @@ mod list;
 mod mybox;
 mod drop;
 mod mock;
+mod tree;
 
 use list::List::{Cons, Nil};
 use list::RcList::{RCons, RNil};
 use list::RRList::{RRCons, RRNil};
+use list::CRList::{CRCons, CRNil};
 use mybox::MyBox;
 use drop::CustomSmartPointer;
 use std::mem::drop;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::cell::RefCell;
+use tree::Node;
 
 fn main() {
     // Box型｡ヒープデータへのポインタ｡
@@ -67,4 +70,60 @@ fn main() {
     println!("a after = {:?}", a);
     println!("b after = {:?}", b);
     println!("c after = {:?}", c);
+
+    // circle reference
+    let a = Rc::new(CRCons(5, RefCell::new(Rc::new(CRNil))));
+
+    println!("a initial rc count = {}", Rc::strong_count(&a));
+    println!("a next item = {:?}", a.tail());
+
+    let b = Rc::new(CRCons(10, RefCell::new(Rc::clone(&a))));
+
+    println!("a rc count after b creation = {}", Rc::strong_count(&a));
+    println!("b initial rc count = {}", Rc::strong_count(&b));
+    println!("b next item = {:?}", b.tail());
+
+    if let Some(link) = a.tail() {
+        *link.borrow_mut() = Rc::clone(&b);
+    }
+
+    println!("b rc count after chaning a = {}", Rc::strong_count(&b));
+    println!("a rc count after chaging a = {}", Rc::strong_count(&a));
+
+    // aとbは循環参照しているため､次の行を実行するとオーバーフローする｡
+    // println!("a next item = {:?}", a.tail());
+
+    // Weak<T>
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+
+    {
+        let branch = Rc::new(Node {
+            value: 5,
+            parent: RefCell::new(Weak::new()),
+            children: RefCell::new(vec![Rc::clone(&leaf)]),
+        });
+
+        *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+        println!("branch strong = {}, weak = {}",
+            Rc::strong_count(&branch),
+            Rc::weak_count(&branch)
+        );
+
+        println!("leaf strong = {}, weak = {}",
+            Rc::strong_count(&leaf),
+            Rc::weak_count(&leaf)
+        );
+    }
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    println!("leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf)
+    );
 }
