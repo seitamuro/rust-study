@@ -3,9 +3,11 @@ mod mybox;
 mod drop;
 
 use list::List::{Cons, Nil};
+use list::RcList::{RCons, RNil};
 use mybox::MyBox;
 use drop::CustomSmartPointer;
 use std::mem::drop;
+use std::rc::Rc;
 
 fn main() {
     // Box型｡ヒープデータへのポインタ｡
@@ -37,4 +39,15 @@ fn main() {
     println!("CustomSmartPointers created.");
     drop(c);
     println!("CustomSmartPointer dropped before the end of main.");
+
+    // Rc<T>
+    let a = Rc::new(RCons(5, Rc::new(RCons(10, Rc::new(RNil)))));
+    println!("count after creating a = {}", Rc::strong_count(&a));
+    let _b = RCons(3, Rc::clone(&a));
+    println!("count after creating b = {}", Rc::strong_count(&a));
+    {
+        let _c = RCons(4, Rc::clone(&a));
+        println!("count after creating c = {}", Rc::strong_count(&a));
+    }
+    println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
