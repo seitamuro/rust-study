@@ -1,6 +1,7 @@
 mod list;
 mod mybox;
 mod drop;
+mod mock;
 
 use list::List::{Cons, Nil};
 use list::RcList::{RCons, RNil};
@@ -35,7 +36,7 @@ fn main() {
     assert_eq!(5, *y);
 
     let c = CustomSmartPointer {data: String::from("my stuff")};
-    let d = CustomSmartPointer {data: String::from("other stuff")};
+    let _d = CustomSmartPointer {data: String::from("other stuff")};
     println!("CustomSmartPointers created.");
     drop(c);
     println!("CustomSmartPointer dropped before the end of main.");
