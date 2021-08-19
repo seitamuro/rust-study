@@ -1,8 +1,11 @@
 mod list;
 mod mybox;
+mod drop;
 
 use list::List::{Cons, Nil};
 use mybox::MyBox;
+use drop::CustomSmartPointer;
+use std::mem::drop;
 
 fn main() {
     // Box型｡ヒープデータへのポインタ｡
@@ -28,4 +31,10 @@ fn main() {
 
     assert_eq!(5, x);
     assert_eq!(5, *y);
+
+    let c = CustomSmartPointer {data: String::from("my stuff")};
+    let d = CustomSmartPointer {data: String::from("other stuff")};
+    println!("CustomSmartPointers created.");
+    drop(c);
+    println!("CustomSmartPointer dropped before the end of main.");
 }
